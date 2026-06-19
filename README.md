@@ -2,9 +2,8 @@
 
 A Chrome extension that automates chat engagement on [Kick.com](https://kick.com). Monitor multiple streamers, auto-open tabs when they go live, and participate in chat with parrot mode.
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/f9b9bd57-b986-45e6-ae68-ffdbbdb8325f" alt="image">
-</p>
+<img width="370" height="486" alt="image" src="https://github.com/user-attachments/assets/4b97ca77-af43-416f-9b66-690e9e3f9b51" />
+<img width="370" height="492" alt="image" src="https://github.com/user-attachments/assets/abf64a0a-71dc-487d-b65b-fa3b7de7f352" />
 
 ---
 
