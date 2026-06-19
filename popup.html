@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automatic CX-Bucks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #111118;
+      --bg3: #1a1a24;
+      --border: #2a2a3a;
+      --border-bright: #3a3a55;
+      --kick: #53fc18;
+      --kick-dim: #3ab010;
+      --kick-glow: rgba(83, 252, 24, 0.15);
+      --kick-glow-strong: rgba(83, 252, 24, 0.3);
+      --red: #ff4444;
+      --red-dim: #cc2222;
+      --yellow: #ffd700;
+      --text: #e8e8f0;
+      --text-dim: #888899;
+      --text-dimmer: #555566;
+      --live-pulse: #ff3c3c;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 380px;
+      min-height: 500px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    .header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--kick), transparent);
+    }
+    .header-logo {
+      width: 32px; height: 32px;
+      background: var(--kick);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700;
+      color: #000;
+      flex-shrink: 0;
+      box-shadow: 0 0 12px var(--kick-glow-strong);
+    }
+    .header-title { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+    .header-sub { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-left: auto; }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1; padding: 10px; text-align: center;
+      font-size: 13px; font-weight: 600; letter-spacing: 0.5px;
+      cursor: pointer; color: var(--text-dim);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .tab:hover { color: var(--text); background: var(--bg3); }
+    .tab.active { color: var(--kick); border-bottom-color: var(--kick); }
+
+    /* PANELS */
+    .panel { display: none; padding: 14px; }
+    .panel.active { display: block; }
+
+    /* ADD STREAMER */
+    .add-row {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .input-wrap {
+      flex: 1; position: relative;
+    }
+    .input-wrap .prefix {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--kick); font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      pointer-events: none;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 10px 9px 28px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea {
+      padding: 9px 10px;
+      resize: vertical;
+      min-height: 70px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+    }
+    input[type="text"]:focus, textarea:focus {
+      border-color: var(--kick-dim);
+      box-shadow: 0 0 0 3px var(--kick-glow);
+    }
+    input[type="text"]::placeholder, textarea::placeholder { color: var(--text-dimmer); }
+
+    .btn {
+      padding: 9px 16px; border-radius: var(--radius);
+      border: none; cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-kick {
+      background: var(--kick);
+      color: #000;
+    }
+    .btn-kick:hover { background: #6fff30; box-shadow: 0 0 12px var(--kick-glow-strong); }
+    .btn-kick:active { transform: scale(0.97); }
+
+    .btn-ghost {
+      background: var(--bg3); color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--border-bright); color: var(--text); }
+
+    .btn-danger { background: var(--red-dim); color: #fff; }
+    .btn-danger:hover { background: var(--red); }
+
+    /* STREAMER LIST */
+    .streamer-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .streamer-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px;
+      transition: border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .streamer-card.is-live {
+      border-color: var(--kick-dim);
+    }
+    .streamer-card.is-live::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--kick);
+      box-shadow: 0 0 8px var(--kick-glow-strong);
+    }
+
+    .streamer-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      color: var(--kick); flex-shrink: 0;
+      border: 2px solid var(--border);
+      overflow: hidden;
+    }
+    .streamer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .streamer-info { flex: 1; min-width: 0; }
+    .streamer-name {
+      font-size: 15px; font-weight: 700;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .live-badge {
+      font-size: 10px; font-weight: 700;
+      background: var(--live-pulse); color: #fff;
+      padding: 1px 6px; border-radius: 3px;
+      letter-spacing: 1px;
+      animation: pulse-badge 2s ease-in-out infinite;
+    }
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .streamer-meta {
+      font-size: 12px; color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .streamer-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      width: 28px; height: 28px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg2);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; transition: all 0.15s; color: var(--text-dim);
+    }
+    .icon-btn:hover { border-color: var(--border-bright); color: var(--text); }
+    .icon-btn.danger:hover { border-color: var(--red); color: var(--red); background: rgba(255,68,68,0.1); }
+
+    .empty-state {
+      text-align: center; padding: 32px 16px;
+      color: var(--text-dimmer);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state p { font-size: 14px; line-height: 1.5; }
+
+    /* SETTINGS */
+    .settings-group {
+      margin-bottom: 16px;
+    }
+    .settings-group-title {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-dimmer); margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--bg3);
+      border-radius: var(--radius);
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
+      gap: 12px;
+    }
+    .setting-info { flex: 1; }
+    .setting-label { font-size: 14px; font-weight: 600; }
+    .setting-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+
+    /* TOGGLE */
+    .toggle {
+      position: relative; width: 42px; height: 24px; flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 24px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute; height: 16px; width: 16px;
+      left: 3px; top: 3px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .toggle input:checked + .toggle-slider {
+      background: var(--kick-glow);
+      border-color: var(--kick-dim);
+    }
+    .toggle input:checked + .toggle-slider::before {
+      background: var(--kick);
+      transform: translateX(18px);
+      box-shadow: 0 0 6px var(--kick-glow-strong);
+    }
+
+    /* STATUS BAR */
+    .status-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--text-dimmer);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--kick);
+      box-shadow: 0 0 4px var(--kick);
+      display: inline-block; margin-right: 5px;
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .save-btn-wrap { padding: 0 14px 14px; }
+    .save-btn-wrap .btn { width: 100%; text-align: center; }
+
+    .toast {
+      position: fixed; bottom: 40px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--kick); color: #000;
+      padding: 8px 18px; border-radius: 6px;
+      font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
+      opacity: 0; transition: all 0.3s; pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* REFRESH BUTTON */
+    .refresh-btn {
+      margin-left: auto;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-dim); font-size: 16px;
+      padding: 4px; border-radius: 4px;
+      transition: color 0.2s, transform 0.3s;
+    }
+    .refresh-btn:hover { color: var(--kick); }
+    .refresh-btn.spinning { animation: spin 0.8s linear; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .live-count {
+      font-size: 11px; color: var(--live-pulse);
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-logo">C</div>
+    <div class="header-title">CX-BUCKS</div>
+    <div class="header-sub" id="liveCount">0 live</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="streamers">📡 Streamers</div>
+    <div class="tab" data-tab="settings">⚙️ Settings</div>
+  </div>
+
+  <!-- Streamers Tab -->
+  <div class="panel active" id="tab-streamers">
+    <div class="add-row">
+      <div class="input-wrap">
+        <span class="prefix">@</span>
+        <input type="text" id="streamerInput" placeholder="username" />
+      </div>
+      <button class="btn btn-kick" id="addBtn">Add</button>
+      <button class="btn btn-ghost refresh-btn" id="refreshBtn" title="Refresh now">↻</button>
+    </div>
+    <div class="streamer-list" id="streamerList">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- Settings Tab -->
+  <div class="panel" id="tab-settings">
+    <div class="settings-group">
+      <div class="settings-group-title">Auto Actions</div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">🔴 Auto-open tabs when going live</div>
+          <div class="setting-desc">Automatically opens a new tab when a monitored streamer goes live</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-autoOpenTabs" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">🔁 Re-open closed tabs</div>
+          <div class="setting-desc">If you close a live streamer's tab, it will reopen within a minute</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-reopenClosedTabs" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Chat Features</div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">🦜 Parrot Mode</div>
+          <div class="setting-desc">Repeats a chat message every 60 seconds (100% chance)</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-parrot" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="save-btn-wrap">
+      <button class="btn btn-kick" id="saveBtn">💾 Save Settings</button>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot"></span>Monitoring</span>
+    <span id="lastChecked">—</span>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
